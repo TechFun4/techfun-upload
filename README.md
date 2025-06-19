@@ -1,6 +1,6 @@
 # TechFun's Uploader
 
-A simple Python CLI tool for uploading large files to the TechFun file hosting service, with progress bar support and automatic chunked uploads.
+A simple Python CLI tool for uploading large files to the free to use TechFun's file hosting service, with progress bar support and automatic chunked uploads.
 
 ## Features
 
