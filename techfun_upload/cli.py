@@ -1,5 +1,7 @@
 import os
+import string
 import sys
+import secrets
 import requests
 import argparse
 import time
@@ -9,6 +11,8 @@ from requests_toolbelt.multipart.encoder import MultipartEncoder, MultipartEncod
 DOMAIN = "https://file.techfun.me"
 CHUNK_SIZE = 95 * 1024 * 1024  # 95 MB
 MAX_SIZE = 540 * CHUNK_SIZE  # ~50 GB
+PASSWORD_LENGTH = 32
+PASSWORD_ALPHABET = string.ascii_letters + string.digits
 
 def format_size(bytes):
     """Translate bytes to human-readable units"""
@@ -18,23 +22,23 @@ def format_size(bytes):
         bytes /= 1024
     return f"{bytes:.2f} PB"
 
+def generate_password():
+    return ''.join(secrets.choice(PASSWORD_ALPHABET) for _ in range(PASSWORD_LENGTH))
+
 def upload_file(file_path):
     """Upload file to TechFun's server"""
-    # Get filename and size
     filename = os.path.basename(file_path)
     file_size = os.path.getsize(file_path)
-    
+
     print(f"File: {filename} ({format_size(file_size)})")
-    
-    # Check file size
+
     if file_size > MAX_SIZE:
         print("File size exceeds max limit (50 GB).")
         sys.exit(1)
-    
+
+    password = generate_password()
     token = ""
     total_chunks = (file_size + CHUNK_SIZE - 1) // CHUNK_SIZE
-    uploaded_size = 0
-    failed_attempts = 0
 
     with tqdm(total=file_size, unit='B', unit_scale=True, desc="Uploading") as pbar:
         with open(file_path, 'rb') as f:
@@ -45,46 +49,46 @@ def upload_file(file_path):
 
                 while failed_attempts < 10:
                     try:
-                        if failed_attempts: 
+                        if failed_attempts:
                             time.sleep(2)
 
-                        # Reset progress bar in case of failed attempt
                         pbar.n = base_offset
                         pbar.refresh()
 
-                        # Prepare request
-                        url = f"{DOMAIN}/upload?token={token}"
-                        if i == total_chunks - 1:
-                            url += "&done=true"
-                        
-                        # Create progress callback to update pbar
+                        url = f"{DOMAIN}/upload"
+                        if token:
+                            url += f"?token={token}"
+                            if i == total_chunks - 1:
+                                url += "&done=true"
+                        elif i == total_chunks - 1:
+                            url += "?done=true"
+
                         def callback(monitor):
                             current_bytes = base_offset + monitor.bytes_read
                             pbar.update(current_bytes - pbar.n)
-                        
-                        # Setup multipart encoder to include callback
+
                         fields = {'file': (filename, chunk, 'application/octet-stream')}
+                        if not token:
+                            fields['password'] = password
                         encoder = MultipartEncoder(fields=fields)
                         monitor = MultipartEncoderMonitor(encoder, callback)
                         headers = {'Content-Type': monitor.content_type}
 
                         response = requests.post(url, data=monitor, headers=headers)
-                        
-                        # Handle response
+
                         if response.status_code == 200:
                             token = response.json().get('token', '')
-                            uploaded_size += len(chunk)
                             failed_attempts = 0
                             break
                         else:
                             failed_attempts += 1
                     except Exception as e:
                         failed_attempts += 1
-                
+
                 if failed_attempts >= 10:
                     print("Upload failed after 10 attempts")
                     sys.exit(1)
-    
+
     return f"{DOMAIN}/file/{token}"
 
 def main():

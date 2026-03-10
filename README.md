@@ -6,6 +6,7 @@ A simple Python CLI tool for uploading large files to the free to use TechFun's 
 
 - Upload files up to 50 GB in size
 - Automatic server-side encryption with AES-256
+- Encrypted with client-side generated password (default)
 - Chunked uploading for reliability
 - Progress bar with `tqdm`
 - Retry logic for failed uploads
