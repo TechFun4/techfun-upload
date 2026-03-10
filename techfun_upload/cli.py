@@ -6,9 +6,7 @@ import time
 from tqdm import tqdm
 from requests_toolbelt.multipart.encoder import MultipartEncoder, MultipartEncoderMonitor
 
-# Declare constants
 DOMAIN = "https://file.techfun.me"
-ALT_DOMAIN = "https://file.nigga.church"
 CHUNK_SIZE = 95 * 1024 * 1024  # 95 MB
 MAX_SIZE = 540 * CHUNK_SIZE  # ~50 GB
 
@@ -20,7 +18,7 @@ def format_size(bytes):
         bytes /= 1024
     return f"{bytes:.2f} PB"
 
-def upload_file(file_path, nigga_mode=False):
+def upload_file(file_path):
     """Upload file to TechFun's server"""
     # Get filename and size
     filename = os.path.basename(file_path)
@@ -87,14 +85,10 @@ def upload_file(file_path, nigga_mode=False):
                     print("Upload failed after 10 attempts")
                     sys.exit(1)
     
-    # Return url
-    if nigga_mode:
-        return f"{ALT_DOMAIN}/{token}"
     return f"{DOMAIN}/file/{token}"
 
 def main():
     parser = argparse.ArgumentParser(description='Upload files to TechFun server')
-    parser.add_argument('-n', '--nigga', action='store_true', help='Use dark mode URL instead of light mode URL')
     parser.add_argument('file', help='Path to file to upload')
     args = parser.parse_args()
     
@@ -103,7 +97,7 @@ def main():
             print(f"File not found: {args.file}")
             sys.exit(1)
         
-        result = upload_file(args.file, args.nigga)
+        result = upload_file(args.file)
         print("\nUpload successful!")
         print(result)
         sys.exit(0)

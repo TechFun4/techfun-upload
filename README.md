@@ -9,7 +9,6 @@ A simple Python CLI tool for uploading large files to the free to use TechFun's 
 - Chunked uploading for reliability
 - Progress bar with `tqdm`
 - Retry logic for failed uploads
-- Option to use alternate (dark mode) URL
 
 ## Installation
 
@@ -24,13 +23,8 @@ This will install the CLI tool as `upload`.
 ## Usage
 
 ```bash
-upload [OPTIONS] FILE
+upload FILE
 ```
-
-### Options
-
-- `-n`, `--nigga`  
-  Use the alternate (dark mode) URL for file access.
 
 ### Arguments
 
@@ -41,12 +35,6 @@ upload [OPTIONS] FILE
 
 ```bash
 upload myvideo.mp4
-```
-
-or using the alternate URL:
-
-```bash
-upload -n myvideo.mp4
 ```
 
 ## Requirements
