@@ -25,22 +25,23 @@ def format_size(bytes):
 def generate_password():
     return ''.join(secrets.choice(PASSWORD_ALPHABET) for _ in range(PASSWORD_LENGTH))
 
-def upload_file(file_path):
+def upload_file(file_path, url_only=False):
     """Upload file to TechFun's server"""
     filename = os.path.basename(file_path)
     file_size = os.path.getsize(file_path)
 
-    print(f"File: {filename} ({format_size(file_size)})")
+    if not url_only:
+        print(f"File: {filename} ({format_size(file_size)})")
 
     if file_size > MAX_SIZE:
-        print("File size exceeds max limit (50 GB).")
+        print("File size exceeds max limit (50 GB).", file=sys.stderr)
         sys.exit(1)
 
     password = generate_password()
     token = ""
     total_chunks = (file_size + CHUNK_SIZE - 1) // CHUNK_SIZE
 
-    with tqdm(total=file_size, unit='B', unit_scale=True, desc="Uploading") as pbar:
+    with tqdm(total=file_size, unit='B', unit_scale=True, desc="Uploading", disable=url_only) as pbar:
         with open(file_path, 'rb') as f:
             for i in range(total_chunks):
                 chunk = f.read(CHUNK_SIZE)
@@ -86,27 +87,29 @@ def upload_file(file_path):
                         failed_attempts += 1
 
                 if failed_attempts >= 10:
-                    print("Upload failed after 10 attempts")
+                    print("Upload failed after 10 attempts", file=sys.stderr)
                     sys.exit(1)
 
     return f"{DOMAIN}/file/{token}"
 
 def main():
     parser = argparse.ArgumentParser(description='Upload files to TechFun server')
+    parser.add_argument('-u', '--url', action='store_true', help='Only print the uploaded file URL')
     parser.add_argument('file', help='Path to file to upload')
     args = parser.parse_args()
     
     try:
         if not os.path.exists(args.file):
-            print(f"File not found: {args.file}")
+            print(f"File not found: {args.file}", file=sys.stderr)
             sys.exit(1)
         
-        result = upload_file(args.file)
-        print("\nUpload successful!")
+        result = upload_file(args.file, args.url_only)
+        if not args.url_only:
+            print("\nUpload successful!")
         print(result)
         sys.exit(0)
     except Exception as e:
-        print(f"\nError: {str(e)}")
+        print(f"\nError: {str(e)}", file=sys.stderr)
         sys.exit(1)
 
 if __name__ == "__main__":

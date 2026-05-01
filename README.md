@@ -31,6 +31,8 @@ upload FILE
 
 - `FILE`  
   Path to the file you want to upload.
+- `-u`/`--url`
+  Prints only the url and nothing else as output
 
 ### Example
 
