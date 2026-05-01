@@ -94,7 +94,7 @@ def upload_file(file_path, url_only=False):
 
 def main():
     parser = argparse.ArgumentParser(description='Upload files to TechFun server')
-    parser.add_argument('-u', '--url', action='store_true', help='Only print the uploaded file URL')
+    parser.add_argument('-u', '--url', dest='url_only', action='store_true', help='Only print the uploaded file URL')
     parser.add_argument('file', help='Path to file to upload')
     args = parser.parse_args()
     
